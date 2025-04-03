@@ -1,0 +1,31 @@
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: ./LoanApi
+      dockerfile: Dockerfile
+    container_name: loan-api
+    ports:
+      - "5000:5000"
+    networks:
+      - loan-network
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://+:5000
+
+  frontend:
+    build:
+      context: ./loan-website
+      dockerfile: Dockerfile
+    container_name: loan-website
+    ports:
+      - "4200:80"
+    depends_on:
+      - backend
+    networks:
+      - loan-network
+
+networks:
+  loan-network:
+    driver: bridge

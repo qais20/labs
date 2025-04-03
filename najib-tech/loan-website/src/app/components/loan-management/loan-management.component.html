@@ -1,0 +1,120 @@
+<div class="container mt-4">
+    <!-- Success and Error Messages -->
+    <div *ngIf="successMessage" class="alert alert-success">{{ successMessage }}</div>
+    <div *ngIf="errorMessage" class="alert alert-danger">{{ errorMessage }}</div>
+  
+    <!-- Add Loan Form -->
+    <div class="card mb-4">
+      <div class="card-header">
+        <h2>Add New Loan</h2>
+      </div>
+      <div class="card-body">
+        <form [formGroup]="loanForm" (ngSubmit)="addLoan()">
+          <div class="mb-3">
+            <label for="borrowerName" class="form-label">Borrower Name</label>
+            <input type="text" class="form-control" id="borrowerName" formControlName="borrowerName">
+            <div *ngIf="loanForm.get('borrowerName')?.invalid && loanForm.get('borrowerName')?.touched" class="text-danger">
+              Borrower name is required.
+            </div>
+          </div>
+          <div class="mb-3">
+            <label for="repaymentAmount" class="form-label">Repayment Amount</label>
+            <input type="number" class="form-control" id="repaymentAmount" formControlName="repaymentAmount">
+            <div *ngIf="loanForm.get('repaymentAmount')?.invalid && loanForm.get('repaymentAmount')?.touched" class="text-danger">
+              Valid repayment amount is required.
+            </div>
+          </div>
+          <div class="mb-3">
+            <label for="fundingAmount" class="form-label">Funding Amount</label>
+            <input type="number" class="form-control" id="fundingAmount" formControlName="fundingAmount">
+            <div *ngIf="loanForm.get('fundingAmount')?.invalid && loanForm.get('fundingAmount')?.touched" class="text-danger">
+              Valid funding amount is required.
+            </div>
+          </div>
+          <button type="submit" class="btn btn-primary" [disabled]="loanForm.invalid">Add Loan</button>
+        </form>
+      </div>
+    </div>
+  
+    <!-- Search by Borrower Name -->
+    <div class="card mb-4">
+      <div class="card-header">
+        <h2>Search by Borrower Name</h2>
+      </div>
+      <div class="card-body">
+        <form [formGroup]="searchForm" (ngSubmit)="searchByBorrowerName()">
+          <div class="input-group mb-3">
+            <input type="text" class="form-control" placeholder="Enter borrower name" formControlName="borrowerName">
+            <button class="btn btn-outline-primary" type="submit" [disabled]="searchForm.invalid">Search</button>
+            <button class="btn btn-outline-secondary" type="button" (click)="clearSearch()">Clear</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  
+    <!-- Search by Loan ID -->
+    <div class="card mb-4">
+      <div class="card-header">
+        <h2>Search by Loan ID</h2>
+      </div>
+      <div class="card-body">
+        <form [formGroup]="searchByIdForm" (ngSubmit)="searchById()">
+          <div class="input-group mb-3">
+            <input type="text" class="form-control" placeholder="Enter loan ID" formControlName="loanId">
+            <button class="btn btn-outline-primary" type="submit" [disabled]="searchByIdForm.invalid">Search</button>
+            <button class="btn btn-outline-secondary" type="button" (click)="clearSelectedLoan()">Clear</button>
+          </div>
+        </form>
+  
+        <!-- Display Selected Loan -->
+        <div *ngIf="selectedLoan" class="mt-3">
+          <h3>Loan Details</h3>
+          <div class="card">
+            <div class="card-body">
+              <p><strong>Loan ID:</strong> {{ selectedLoan.loanID }}</p>
+              <p><strong>Borrower Name:</strong> {{ selectedLoan.borrowerName }}</p>
+              <p><strong>Repayment Amount:</strong> {{ selectedLoan.repaymentAmount | currency }}</p>
+              <p><strong>Funding Amount:</strong> {{ selectedLoan.fundingAmount | currency }}</p>
+              <button class="btn btn-danger" (click)="deleteLoan(selectedLoan.loanID)">Delete Loan</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  
+    <!-- Loans List -->
+    <div class="card">
+      <div class="card-header">
+        <h2>All Loans</h2>
+      </div>
+      <div class="card-body">
+        <div *ngIf="loans.length === 0" class="alert alert-info">
+          No loans found.
+        </div>
+        <div class="table-responsive" *ngIf="loans.length > 0">
+          <table class="table table-striped">
+            <thead>
+              <tr>
+                <th>Loan ID</th>
+                <th>Borrower Name</th>
+                <th>Repayment Amount</th>
+                <th>Funding Amount</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let loan of loans">
+                <td>{{ loan.loanID }}</td>
+                <td>{{ loan.borrowerName }}</td>
+                <td>{{ loan.repaymentAmount | currency }}</td>
+                <td>{{ loan.fundingAmount | currency }}</td>
+                <td>
+                  <button class="btn btn-sm btn-danger" (click)="deleteLoan(loan.loanID)">Delete</button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>

@@ -1,0 +1,81 @@
+apiVersion: install.istio.io/v1alpha1
+kind: IstioOperator
+metadata:
+  namespace: istio-system
+  name: default-configuration
+spec:
+  profile: default
+  meshConfig:
+    outboundTrafficPolicy:
+      mode: REGISTRY_ONLY
+    accessLogFile: /dev/stdout
+  components:
+    # telemetry:
+    #   enabled: true
+    egressGateways:
+    - name: istio-egressgateway
+      enabled: true
+    ingressGateways:
+    - name: istio-ingressgateway
+      k8s:
+        hpaSpec:
+          maxReplicas: 1
+        nodeSelector:
+          ingress-ready: "true"
+        service:
+          type: NodePort
+        overlays:
+        - apiVersion: v1
+          kind: Service
+          name: istio-ingressgateway
+          patches:
+          - path: spec.ports
+            value:
+            - name: status-port
+              port: 15021
+              targetPort: 15021
+              nodePort: 30002
+            - name: http2
+              port: 80
+              targetPort: 8080
+              nodePort: 30000
+            - name: https
+              port: 443
+              targetPort: 8443
+              nodePort: 30001
+        - apiVersion: policy/v1beta1
+          kind: PodDisruptionBudget
+          name: istio-ingressgateway
+          patches:
+          - path: spec.minAvailable
+            value: 0
+  # values:
+  #   telemetry:
+  #     v2:
+  #       prometheus:
+  #         configOverride:
+  #           inboundSidecar:
+  #             debug: false
+  #             stat_prefix: istio
+  #             metrics:
+  #               - name: requests_total
+  #                 dimensions:
+  #                   request_method: request.method
+  #                   request_path: request.url_path
+  #           outboundSidecar:
+  #             debug: false
+  #             stat_prefix: istio
+  #             metrics:
+  #               - name: requests_total
+  #                 dimensions:
+  #                   request_method: request.method
+  #                   request_path: request.url_path
+  #           gateway:
+  #             debug: false
+  #             stat_prefix: istio
+  #             disable_host_header_fallback: true
+  #             metrics:
+  #               - name: requests_total
+  #                 dimensions:
+  #                   request_method: request.method
+  #                   request_path: request.url_path

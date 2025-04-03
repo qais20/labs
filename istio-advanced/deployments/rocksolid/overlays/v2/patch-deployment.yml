@@ -1,0 +1,26 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: rocksolid
+spec:
+  template:
+    metadata:
+      annotations:
+        prometheus.io/port: "8082"
+    spec:
+      containers:
+      - name: rocksolid
+        image: moabukar/fixed:latest
+        env:
+          - name: STATUS_CODE
+            value: "500"
+          - name: CONTENTS
+            value: "Not so rocksolid"
+        ports:
+          - containerPort: 8082
+        livenessProbe:
+          httpGet:
+            port: 8082
+        readinessProbe:
+          httpGet:
+            port: 8082

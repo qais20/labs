@@ -1,0 +1,141 @@
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  name: default-host
+  namespace: default
+spec:
+  hosts:
+  - "*" # normally: api.corporate.com
+  gateways:
+  - default-gateway
+  http:
+  # simple example
+  - match:
+    - uri:
+        prefix: "/needhelp"
+      ignoreUriCase: true
+    route:
+    - destination:
+        host: needhelp-v1
+        subset: v1
+      weight: 100
+  # 50/50 traffic shifting
+  - match:
+    - uri:
+        prefix: "/rocksolid"
+      ignoreUriCase: true
+    route:
+    - destination:
+        host: rocksolid-v1
+        subset: v1
+      weight: 50
+    - destination:
+        host: rocksolid-v2
+        subset: v2
+      weight: 50
+  # Header alteration
+  # Could be used as a simple feature toggle mechanism
+  # No need for feature toggle frameworks in your code
+  # Just use a certain header value!
+  - match:
+    - uri:
+        prefix: "/normal"
+      ignoreUriCase: true
+    route:
+    - destination:
+        host: svc-echo-server-v1
+        subset: v1
+      weight: 50 # percent
+      headers:
+        request:
+          add:
+            VERSION: "THIS___IS___VERSION___1!"
+    - destination:
+        host: svc-echo-server-v2
+        subset: v2
+      weight: 50 # percent
+      headers:
+        request:
+          add:
+            VERSION: "THIS___IS___VERSION___2!"
+    # retry 3 times and each attempt can only take 2 seconds
+    # but don't
+    retries:
+      attempts: 3
+      perTryTimeout: 2s
+      # retriable-4xx = 409
+      # gateway-error = 502, 503, or 504.
+      # reset = disconnect/reset/read timeout
+      # connect-failure = tcp connect error (not http request)
+      retryOn: gateway-error,connect-failure,refused-stream,reset,retriable-4xx
+    headers:
+      request:
+          add:
+              Always: "Yes!"
+  # Mirror traphic to version 2
+  - match:
+    - uri:
+        prefix: "/mirror"
+      ignoreUriCase: true
+    # routing rules can define 50% to go to v1
+    # Traffic splitting over two services!
+    route:
+    - destination:
+        host: svc-echo-server-v1
+        subset: v1
+      weight: 100
+      headers:
+        request:
+          add:
+            MIRROR: "NONE"
+    mirror: ######
+      host: svc-echo-server-v5
+      subset: v5
+    mirror_percent: 100 #### Gimme everything!
+  # Introduce faults!
+  - match:
+    - uri:
+        prefix: "/abort"
+      ignoreUriCase: true
+    fault: #######
+      abort:
+       httpStatus: 500
+       percentage:
+         value: 25
+    headers:
+      request:
+          add:
+              Fault: "ABORT"
+    route:
+    - destination:
+        host: svc-echo-server-v4
+        subset: v4
+  # Add delays
+  - match:
+    - uri:
+        prefix: "/delay"
+      ignoreUriCase: true
+    # Introduce a fixed delay to test applications
+    # behaviour with slow endpoints
+    fault:
+      delay:
+        fixedDelay: 7s
+        percentage:
+          value: 100
+    # Add a header
+    headers:
+      request:
+          add:
+              Fault: "DELAY"
+    route:
+    - destination:
+        host: svc-echo-server-v3
+        subset: v3
+  # Secure destination
+  - match:
+    - uri:
+        prefix: "/secure"
+      ignoreUriCase: true
+    route:
+    - destination:
+        host: secure-v1
