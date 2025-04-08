@@ -10,7 +10,7 @@ This repository provides a Terragrunt lab for deploying basic AWS infrastructure
 ## Repository Structure
 
 - `environments/`: Contains configurations for each environment (`dev` and `prod`)
-- `modules/`: Contains reusable Terraform code for the VPC
+- `modules/`: Contains reusable Terraform code for the EC2
 
 ## Setup Instructions
 
